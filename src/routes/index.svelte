@@ -5,7 +5,6 @@
     let width = 12;
     let height = 12;
 
-    // todo remove
     let ms = new MinesweeperGame(width, height);
     $: field = ms.field;
 </script>
@@ -18,6 +17,7 @@
       {#each column as cell, y}
         <td>
           <Cell
+              lighter={(x + y) % 2 === 0}
               cell={cell}
               onReveal={() => {
               ms.revealEmptyPatch(x, y);
