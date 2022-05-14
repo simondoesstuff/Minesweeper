@@ -1,15 +1,43 @@
 <script>
     import Cell from "../Components/Cell.svelte";
-    import {MinesweeperGame} from "../Logic/MinesweeperGame.ts";
+    import {GoodStartMinesweeper, MinesweeperGame} from "../Logic/MinesweeperGame.ts";
+    import {onMount} from "svelte";
 
     let width = 12;
     let height = 12;
 
-    let ms = new MinesweeperGame(width, height);
+    let ms = new MinesweeperGame(width, height, 0); // empty board... at first
     $: field = ms.field;
+    $: gameProgress = ms.endState();
+
+    const restart = () => ms = new MinesweeperGame(width, height, 0);
+
+    function onReveal(x, y) {
+        if (gameProgress === "starting") {
+            ms = GoodStartMinesweeper(width, height, x, y);
+        }
+
+        ms.revealEmptyPatch(x, y);
+        ms = ms;
+    }
+
+    onMount(() => {
+        window.revealAll = () => {
+            ms.field.forEach(row => row.forEach(cell => cell.revealed = true));
+            ms.field = ms.field;
+        };
+
+        window.minesweeper = ms;
+    });
 </script>
 
-<h1 class="font-bold shadow-2xl m-6 ml-16">Hey Brutha!</h1>
+{#if gameProgress !== "playing"}
+    <div class="flex justify-center">
+        <div class="text-white font-bold p-5 text-6xl">
+            {gameProgress === "won" ? "GG" : "L"}
+        </div>
+    </div>
+{/if}
 
 <table id="Board">
   {#each field as column, x}
@@ -19,10 +47,8 @@
           <Cell
               lighter={(x + y) % 2 === 0}
               cell={cell}
-              onReveal={() => {
-              ms.revealEmptyPatch(x, y);
-              ms = ms; // for svelte reactivity
-          }}
+              onReveal={() => onReveal(x, y)}
+              onFlag={() => ms = ms}
           />
         </td>
       {/each}

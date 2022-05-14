@@ -3,10 +3,51 @@ export class MinesweeperGame {
     public readonly height: number;
     public field!: MinesweeperCell[][];
 
-    constructor(width: number, height: number) {
+    constructor(width: number, height: number, mineProbability: number) {
         this.width = width;
         this.height = height;
-        this.initField();
+
+        const initField = () => {
+            // Create the field (2d array)
+            this.field = Array(this.width).fill(0).map(() => Array(this.height).fill(0));
+
+            // if the probability is 0, then there are no mines
+            // otherwise, we will randomly place mines
+            if (mineProbability <= 0) {
+                this.field = this.field.map(row => row.map(cell => new MinesweeperCell()))
+            } else {
+                this.field = this.field.map(row => row.map(cell => {
+                    if (Math.random() < mineProbability) {
+                        return MinesweeperCell.MINE();
+                    } else {
+                        return new MinesweeperCell();
+                    }
+                }));
+            }
+
+            // Calculate the adjacent mines for each cell
+            for (let y = 0; y < this.height; y++) {
+                for (let x = 0; x < this.width; x++) {
+                    if (!this.field[x][y].mine) {
+                        continue;
+                    }
+
+                    // increase the adjacent mines number for each nearby cell
+                    for (let i = -1; i <= 1; i++) {
+                        for (let j = -1; j <= 1; j++) {
+                            if (x + i < 0 || x + i >= this.width || y + j < 0 || y + j >= this.height) {
+                                continue;
+                            }
+
+                            if (i != 0 || j != 0) {
+                                this.field[x + i][y + j].adjacentMines++;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        initField();
     }
 
     /**
@@ -50,62 +91,44 @@ export class MinesweeperGame {
         }
     }
 
-    private initField() {
-        let fieldLength = this.width * this.height;
-        let mineNumber = Math.round(.15 * fieldLength);
-
-        // fill a 1d array with mines and empty cells
-        let mines = Array(fieldLength).fill(0)
-            .map((e, i) => {
-                return i < mineNumber ? MinesweeperCell.MINE() : new MinesweeperCell();
-            });
-
-        // Shuffle the mines
-        mines = mines.sort(() => Math.random() - 0.5);
-
-        // Create the field (2d array)
-        this.field = Array(this.width).fill(0)
-            .map(() => Array(this.height).fill(0)
-                .map(() => {
-                    // @ts-ignore
-                    let mine: MinesweeperCell = mines.pop();
-                    return mine;
-                }));
-
-        // Calculate the adjacent mines for each cell
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
-                if (!this.field[x][y].mine) {
-                    continue;
-                }
-
-                // increase the adjacent mines number for each nearby cell
-                for (let i = -1; i <= 1; i++) {
-                    for (let j = -1; j <= 1; j++) {
-                        if (x + i < 0 || x + i >= this.width || y + j < 0 || y + j >= this.height) {
-                            continue;
-                        }
-
-                        if (i != 0 || j != 0) {
-                            this.field[x + i][y + j].adjacentMines++;
-                        }
-                    }
-                }
-            }
+    /**
+     * Determine if the game is over.
+     */
+    public endState(): "won" | "lost" | "playing" | "starting" {
+        // check if the game is lost
+        // if even one mine is revealed
+        if (this.field.some(row => row.some(cell => cell.mine && cell.revealed))) {
+            return "lost";
         }
+
+        // check if the game is won
+        // if the mines == the flagged cells and all the cells are revealed
+        if (this.field.every(row => row.every(cell => {
+            if (cell.flagged) return cell.mine;
+            return cell.revealed;
+        }))) {
+            return "won";
+        }
+
+        // check if the game hasn't started yet
+        if (this.field.every(row => row.every(cell => !cell.revealed))) {
+            return "starting";
+        }
+
+        return "playing";
     }
 
     // ascii representation of the field (for debugging)
     public fieldAscii() {
         let result = '';
 
-        for (let y = 0; y < this.height; y++) {
-            for (let x = 0; x < this.width; x++) {
+        for (let x = 0; x < this.width; x++) {
+            for (let y = 0; y < this.height; y++) {
                 let cell = this.field[x][y];
 
                 if (cell.mine) {
                     result += '*';
-                }else {
+                } else {
                     result += cell.adjacentMines;
                 }
 
@@ -119,18 +142,45 @@ export class MinesweeperGame {
     }
 }
 
+export const GoodStartMinesweeper = (width: number, height: number, startX: number, startY: number, mineProbability: number = .175) => {
+    while (true) {
+        let ms = new MinesweeperGame(width, height, mineProbability);
+        if (!ms.field[startX][startY].mine && ms.field[startX][startY].adjacentMines === 0) {
+            return ms;
+        }
+    }
+}
+
 export class MinesweeperCell {
     public mine: boolean;
-    public revealed: boolean;
-    public flagged: boolean;
+    private _revealed: boolean;
+    private _flagged: boolean;
     public adjacentMines: number;
+
+    get revealed(): boolean {
+        return this._revealed;
+    }
+
+    get flagged(): boolean {
+        return this._flagged;
+    }
+
+    set revealed(value: boolean) {
+        this._revealed = value;
+        if (value) this._flagged = false;
+    }
+
+    set flagged(value: boolean) {
+        this._flagged = value;
+        if (value) this._revealed = false;
+    }
 
     constructor();
     constructor(isMine: boolean, isRevealed: boolean, isFlagged: boolean, adjacentMines: number);
     constructor(isMine?: boolean, isRevealed?: boolean, isFlagged?: boolean, adjacentMines?: number) {
         this.mine = isMine ?? false;
-        this.revealed = isRevealed ?? false;
-        this.flagged = isFlagged ?? false;
+        this._revealed = isRevealed ?? false;
+        this._flagged = isFlagged ?? false;
         this.adjacentMines = adjacentMines ?? 0;
     }
 

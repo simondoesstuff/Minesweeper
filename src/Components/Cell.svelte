@@ -5,6 +5,7 @@
 
     export let cell: MinesweeperCell;
     export let onReveal: () => void;
+    export let onFlag: () => void;
 
     $: symbol = (() => {
         if (!cell.revealed) {
@@ -30,6 +31,7 @@
         if (!cell.revealed) {
             if (!cell.flagged) {
                 cell.flagged = true;
+                onFlag();
             } else {
                 cell.revealed = true;
                 onReveal();
