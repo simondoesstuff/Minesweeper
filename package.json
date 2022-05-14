@@ -22,5 +22,6 @@
   },
   "type": "module",
   "dependencies": {
+    "sass": "^1.51.0"
   }
 }
