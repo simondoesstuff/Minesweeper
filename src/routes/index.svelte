@@ -15,7 +15,7 @@
   {#each field as column, x}
     <tr>
       {#each column as cell, y}
-        <td>
+        <td class="m-0">
           <Cell
               lighter={(x + y) % 2 === 0}
               cell={cell}
@@ -35,5 +35,7 @@
   #Board {
     margin-left: 30vw;
     margin-right: 30vw;
+    border-collapse: collapse;
+    border: 1px solid #ffcc4c;
   }
 </style>

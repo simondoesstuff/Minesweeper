@@ -9,7 +9,7 @@
     $: symbol = (() => {
         if (!cell.revealed) {
             if (cell.flagged) return "⚠";
-            return "⬜";
+            return "";
         }
 
         if (cell.mine) return "💀";
@@ -20,9 +20,12 @@
 
 <span
     id="Cell"
-    class="aspect-square grid place-items-center border border-amber-500"
+    class="aspect-square grid place-items-center"
+
     class:cursor-grab={!cell.revealed}
     class:lighter
+    class:unrevealed={!cell.revealed}
+
     on:click={() => {
         if (!cell.revealed) {
             if (!cell.flagged) {
@@ -47,5 +50,9 @@
 
   .lighter {
     background-color: rgba(118, 255, 223, 0.07);
+  }
+
+  .unrevealed {
+    background-color: rgba(0, 0, 0, 0.33);
   }
 </style>
