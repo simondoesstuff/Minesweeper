@@ -58,9 +58,10 @@
 
 <style lang="scss">
   #Board {
-    @apply grid border border-amber-300;
+    // should control entire size`
+    width: 70vw;
 
-    width: 20rem;
+    @apply grid border border-amber-300;
     gap: 0.1rem;
     grid-template-columns: repeat(12, 1fr);
   }

@@ -47,6 +47,15 @@
   }
 
   .unrevealed {
+    @apply hover:scale-[1.20] duration-200 ease-out;
     background-color: rgba(0, 0, 0, 0.33);
+
+    &:hover {
+      background-color: #3B454BFF;
+    }
+
+    &:active {
+      @apply scale-[.90];
+    }
   }
 </style>
