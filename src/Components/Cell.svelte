@@ -20,10 +20,7 @@
 </script>
 
 <span
-    id="Cell"
-    class="aspect-square grid place-items-center"
-
-    class:cursor-grab={!cell.revealed}
+    class="aspect-square w-full grid place-items-center text-[1.5vw]"
     class:lighter
     class:unrevealed={!cell.revealed}
 
@@ -45,11 +42,6 @@
 </span>
 
 <style lang="scss">
-  #Cell {
-    font-size: 2vw;
-    width: 4rem;
-  }
-
   .lighter {
     background-color: rgba(118, 255, 223, 0.07);
   }

@@ -32,36 +32,36 @@
 </script>
 
 {#if gameProgress !== "playing"}
-    <div class="flex justify-center">
-        <div class="text-white font-bold p-5 text-6xl">
-            {gameProgress === "won" ? "GG" : "L"}
-        </div>
+  <div class="flex justify-center">
+    <div class="text-white font-bold p-5 text-6xl">
+      {gameProgress === "won" ? "GG" : "L"}
     </div>
+  </div>
 {/if}
 
-<table id="Board">
-  {#each field as column, x}
-    <tr>
+
+<div class="grid place-items-center w-screen aspect-square">
+  <div id="Board">
+    {#each field as column, x}
       {#each column as cell, y}
-        <td class="m-0">
-          <Cell
-              lighter={(x + y) % 2 === 0}
-              cell={cell}
-              onReveal={() => onReveal(x, y)}
-              onFlag={() => ms = ms}
-          />
-        </td>
+        <Cell
+            lighter={(x + y) % 2 === 0}
+            cell={cell}
+            onReveal={() => onReveal(x, y)}
+            onFlag={() => ms = ms}
+        />
       {/each}
-    </tr>
-  {/each}
-</table>
+    {/each}
+  </div>
+</div>
 
 
 <style lang="scss">
   #Board {
-    margin-left: 30vw;
-    margin-right: 30vw;
-    border-collapse: collapse;
-    border: 1px solid #ffcc4c;
+    @apply grid border border-amber-300;
+
+    width: 20rem;
+    gap: 0.1rem;
+    grid-template-columns: repeat(12, 1fr);
   }
 </style>
