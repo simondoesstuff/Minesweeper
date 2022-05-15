@@ -31,14 +31,14 @@
     });
 </script>
 
-{#if gameProgress !== "playing"}
+
+{#if gameProgress !== "playing" && gameProgress !== "starting"}
   <div class="flex justify-center">
     <div class="text-white font-bold p-5 text-6xl">
       {gameProgress === "won" ? "GG" : "L"}
     </div>
   </div>
 {/if}
-
 
 <div class="grid place-items-center w-screen aspect-square">
   <div id="Board">
