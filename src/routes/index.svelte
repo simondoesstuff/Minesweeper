@@ -61,7 +61,7 @@
     // should control entire size`
     width: 70vw;
 
-    @apply grid border border-amber-300;
+    @apply grid border border-amber-300 rounded;
     gap: 0.1rem;
     grid-template-columns: repeat(12, 1fr);
   }

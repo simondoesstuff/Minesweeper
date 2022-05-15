@@ -20,7 +20,7 @@
 </script>
 
 <span
-    class="aspect-square w-full grid place-items-center text-[1.5vw]"
+    class="aspect-square w-full grid place-items-center text-[1.5vw] duration-200"
     class:lighter
     class:unrevealed={!cell.revealed}
 
@@ -47,11 +47,12 @@
   }
 
   .unrevealed {
-    @apply hover:scale-[1.20] duration-200 ease-out;
+    @apply hover:scale-[1.20] ease-out;
     background-color: rgba(0, 0, 0, 0.33);
 
     &:hover {
       background-color: #3B454BFF;
+      @apply rounded;
     }
 
     &:active {
