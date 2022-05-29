@@ -1,11 +1,17 @@
-export class MinesweeperGame {
-    public readonly width: number;
-    public readonly height: number;
-    public field!: MinesweeperCell[][];
+import {AICellOverlay, MinesweeperCell} from "./CellStructs";
+import type AIAgent from "./AIAgent";
 
-    constructor(width: number, height: number, mineProbability: number) {
+export class MinesweeperGame {
+    readonly width: number;
+    readonly height: number;
+
+    field!: MinesweeperCell[][]; // definitely initialized in the constructor
+    aiAgent?: AIAgent;
+
+    constructor(width: number, height: number, mineProbability: number, aiAgent?: AIAgent) {
         this.width = width;
         this.height = height;
+        this.aiAgent = aiAgent;
 
         const initField = () => {
             // Create the field (2d array)
@@ -149,41 +155,4 @@ export const GoodStartMinesweeper = (width: number, height: number, startX: numb
             return ms;
         }
     }
-}
-
-export class MinesweeperCell {
-    public mine: boolean;
-    private _revealed: boolean;
-    private _flagged: boolean;
-    public adjacentMines: number;
-
-    get revealed(): boolean {
-        return this._revealed;
-    }
-
-    get flagged(): boolean {
-        return this._flagged;
-    }
-
-    set revealed(value: boolean) {
-        this._revealed = value;
-        if (value) this._flagged = false;
-    }
-
-    set flagged(value: boolean) {
-        this._flagged = value;
-        if (value) this._revealed = false;
-    }
-
-    constructor();
-    constructor(isMine: boolean, isRevealed: boolean, isFlagged: boolean, adjacentMines: number);
-    constructor(isMine?: boolean, isRevealed?: boolean, isFlagged?: boolean, adjacentMines?: number) {
-        this.mine = isMine ?? false;
-        this._revealed = isRevealed ?? false;
-        this._flagged = isFlagged ?? false;
-        this.adjacentMines = adjacentMines ?? 0;
-    }
-
-    static MINE = () => new MinesweeperCell(true, false, false, 0);
-    static HINT = (x: number) => new MinesweeperCell(false, false, false, x);
 }
