@@ -1,5 +1,3 @@
-import type Color from "./Color";
-
 export class MinesweeperCell {
     public mine: boolean;
     private _revealed: boolean;

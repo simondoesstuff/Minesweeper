@@ -1,17 +1,14 @@
-import {AICellOverlay, MinesweeperCell} from "./CellStructs";
-import type AIAgent from "./AIAgent";
+import {MinesweeperCell} from "./CellStructs";
 
 export class MinesweeperGame {
     readonly width: number;
     readonly height: number;
 
     field!: MinesweeperCell[][]; // definitely initialized in the constructor
-    aiAgent?: AIAgent;
 
-    constructor(width: number, height: number, mineProbability: number, aiAgent?: AIAgent) {
+    constructor(width: number, height: number, mineProbability: number) {
         this.width = width;
         this.height = height;
-        this.aiAgent = aiAgent;
 
         const initField = () => {
             // Create the field (2d array)

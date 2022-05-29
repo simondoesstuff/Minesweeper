@@ -1,11 +1,17 @@
 <script lang="ts">
-    import {MinesweeperCell} from "../Logic/MinesweeperGame";
+    import {AICellOverlay, MinesweeperCell} from "../Logic/CellStructs";
 
     export let lighter: boolean; // used to make the grid alternate between lighter and darker cells
 
     export let cell: MinesweeperCell;
     export let onReveal: () => void;
     export let onFlag: () => void;
+    export let aiOverlay: AICellOverlay;
+
+    let overlayElement: HTMLSpanElement;
+    $: if (overlayElement) {
+        overlayElement.style.backgroundColor = `hsl(${aiOverlay.highlight * 360}, 100%, 100%)`;
+    }
 
     $: symbol = (() => {
         if (!cell.revealed) {
@@ -36,9 +42,15 @@
         }
     }}
 >
+<!--  Inner Symbol  -->
   <span class="text-center select-none magicTextSize">
     {symbol}
   </span>
+<!--  AI Overlay Highlight  -->
+  {#if aiOverlay.highlight}
+    <span bind:this={overlayElement} class="w-full opacity-40">
+    </span>
+  {/if}
 </span>
 
 <style lang="scss">
@@ -51,7 +63,7 @@
     background-color: rgba(0, 0, 0, 0.33);
 
     &:hover {
-      background-color: #3B454BFF;
+      background-color: #74a9a1;
       @apply rounded;
     }
 
