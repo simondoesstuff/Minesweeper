@@ -57,19 +57,22 @@ export class MinesweeperGame {
      * Reveals connected cells of 0 adjacent mines.
      * If the specified cell is not in bounds or the adjacent-mine number
      * is not 0, nothing happens.
+     *
+     * Returns the cells that were revealed. Returns an empty array if no cells were revealed.
      * @param originX the x-coordinate of the cell to start revealing
      * @param originY the y-coordinate of the cell to start revealing
      */
-    public revealEmptyPatch(originX: number, originY: number): void {
+    public revealEmptyPatch(originX: number, originY: number): { x: number, y: number, adjacentMines: number }[] {
         // first check if its in bounds and if the adjacent-mine number is 0
-        if (originX < 0 || originX >= this.width || originY < 0 || originY >= this.height) return;
-        if (this.field[originX][originY].adjacentMines !== 0) return;
+        if (originX < 0 || originX >= this.width || originY < 0 || originY >= this.height) return [];
+        if (this.field[originX][originY].adjacentMines !== 0) return [];
 
         // reveal the cell
         this.field[originX][originY].revealed = true;
 
         // discovered will only contain strings so that we can use Set (objects are not comparable)
         let discovered = new Set();
+        let discoveredObjects = [];
         let frontier = [{x: originX, y: originY}];
 
         while (frontier.length > 0) {
@@ -77,6 +80,7 @@ export class MinesweeperGame {
 
             this.field[x][y].revealed = true;
             discovered.add(JSON.stringify({x, y}));
+            discoveredObjects.push({x, y, adjacentMines: this.field[x][y].adjacentMines}); // seems redundant, but needed to return
 
             if (this.field[x][y].adjacentMines !== 0) continue;
 
@@ -92,6 +96,8 @@ export class MinesweeperGame {
                 }
             }
         }
+
+        return discoveredObjects;
     }
 
     /**

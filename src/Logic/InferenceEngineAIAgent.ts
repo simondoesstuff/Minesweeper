@@ -2,25 +2,35 @@ import AIAgent from "./AIAgent";
 import type {AICellOverlay} from "./CellStructs";
 
 export default class InferenceEngineAIAgent extends AIAgent {
-    knowledge: Sentence[] = [];
+    private knowledge: Sentence[] = [];
 
     // ms; time to think through major steps in making an inference
-    thinkingTimeConstant: number = 500;
-    think = async (degree: number = 1) => new Promise(resolve => setTimeout(resolve, this.thinkingTimeConstant * degree));
+    thinkingTimeConstant: number = 1000;
+    private think = async (degree: number = 1) => new Promise(resolve => setTimeout(resolve, this.thinkingTimeConstant * degree));
 
     // here we will attempt to make one major inference, stop,
-    // and update the overlays accordingly
-    async makeMove(revealedCells: { x: number; y: number; adjacentMines: number }[]) {
+    // and update the overlays accordingly. onUpdate will be called
+    // as inferences are made.
+    async makeMove(revealedCells: { x: number; y: number; adjacentMines: number }[], onUpdated: () => void) {
         // first, realize each move we missed
         for (let cell of revealedCells) {
             const cellOverlay = this.field[cell.x][cell.y];
             cellOverlay.prediction = "safe";
             cellOverlay.showPrediction = false;
-            this.addSentence(this.getAdjacentCells(cell), cell.adjacentMines);
-            await this.think(.2);
         }
 
-        await this.think(1.5);
+        // next, display new sentences
+        revealedCells = revealedCells.sort((a, b) => a.adjacentMines - b.adjacentMines);
+        if (revealedCells.length !== 0) {
+            for (let cell of revealedCells) {
+                if (this.addSentence(this.getAdjacentCells(cell), cell.adjacentMines)) {
+                    onUpdated();
+                    await this.think(.1);
+                }
+            }
+
+            await this.think(1.5);
+        }
 
         // attempt to construct new inferences from old ones
 
@@ -31,6 +41,7 @@ export default class InferenceEngineAIAgent extends AIAgent {
 
                 if (sentence.infer()) {
                     sentence.removeHighlights();
+                    onUpdated();
                     this.knowledge.slice(i, 1);
                     return true; // we made a major inference, so we can stop
                 }
@@ -56,7 +67,10 @@ export default class InferenceEngineAIAgent extends AIAgent {
                     let resultingSet = subset1.length > 0 ? subset1 : subset2;
                     let mineCount = Math.abs(sent1.count - sent2.count);
 
-                    if (this.addSentence(resultingSet, mineCount)) return true;
+                    if (this.addSentence(resultingSet, mineCount)) {
+                        onUpdated();
+                        return true;
+                    }
                 }
             }
 
@@ -68,6 +82,7 @@ export default class InferenceEngineAIAgent extends AIAgent {
 
             if (!deriveSubsets()) break;
 
+            onUpdated();
             await this.think();
         }
     }
@@ -76,6 +91,7 @@ export default class InferenceEngineAIAgent extends AIAgent {
     // safe cells are ignored. empty sentences
     // are ignored. cells that contain 100% mines
     // are ignored.
+    // returns true if a new sentence was added
     private addSentence(cells: AICellOverlay[], adjacentMines: number): boolean {
         cells = cells.filter(cell => cell.prediction !== "safe");
 
@@ -125,9 +141,9 @@ class Sentence {
         this.cells = cells
         this.count = count
 
-        // the hightlight color of the cells are determined
+        // the highlight color of the cells are determined
         // by Count
-        const color = count/9.0;
+        const color = 1 - count/9.0;
         this.cells.forEach(cell => cell.highlight = color);
 
         this.infer()

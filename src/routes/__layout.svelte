@@ -12,9 +12,3 @@
 </svelte:head>
 
 <slot/>
-
-<style>
-  body {
-      overflow-x: hidden;
-  }
-</style>

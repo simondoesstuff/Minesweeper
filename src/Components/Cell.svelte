@@ -9,8 +9,10 @@
     export let aiOverlay: AICellOverlay;
 
     let overlayElement: HTMLSpanElement;
+    $: overlayHighlight = aiOverlay?.highlight;
     $: if (overlayElement) {
-        overlayElement.style.backgroundColor = `hsl(${aiOverlay.highlight * 360}, 100%, 100%)`;
+        if (overlayHighlight) overlayElement.style.backgroundColor = `hsl(${overlayHighlight * 360}, 100%, 50%)`;
+        else overlayElement.style.backgroundColor = "";
     }
 
     $: symbol = (() => {
@@ -26,7 +28,7 @@
 </script>
 
 <span
-    class="aspect-square w-full grid place-items-center text-[1.5vw] duration-200"
+    class="relative aspect-square w-full grid place-items-center text-[1rem] duration-200"
     class:lighter
     class:unrevealed={!cell.revealed}
 
@@ -47,24 +49,25 @@
     {symbol}
   </span>
 <!--  AI Overlay Highlight  -->
-  {#if aiOverlay.highlight}
-    <span bind:this={overlayElement} class="w-full opacity-40">
-    </span>
-  {/if}
+  <span
+      bind:this={overlayElement}
+      class:border-2={overlayHighlight}
+      class="absolute top-0 left-0 w-full aspect-square opacity-40 rounded border-white transition duration-300">
+  </span>
 </span>
 
 <style lang="scss">
   .lighter {
-    background-color: rgba(118, 255, 223, 0.07);
+    background-color: rgba(0, 0, 0, 0.15);
   }
 
   .unrevealed {
     @apply hover:scale-[1.20] ease-out;
-    background-color: rgba(0, 0, 0, 0.33);
+    background-color: rgba(0, 0, 0, 0.5);
 
     &:hover {
       background-color: #74a9a1;
-      @apply rounded;
+      @apply rounded z-10;
     }
 
     &:active {

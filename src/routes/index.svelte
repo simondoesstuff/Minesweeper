@@ -3,6 +3,7 @@
     import {GoodStartMinesweeper, MinesweeperGame} from "../Logic/MinesweeperGame.ts";
     import {onMount} from "svelte";
     import InferenceEngineAIAgent from "../Logic/InferenceEngineAIAgent.ts";
+    import AIAgent from "../Logic/AIAgent";
 
     // ---------------------------------------------------
     // Minesweeper
@@ -12,12 +13,26 @@
     let height = 12;
 
     let ms = new MinesweeperGame(width, height, 0); // empty board... at first
-    $: aiAgent = new InferenceEngineAIAgent(width, height);
+    let aiAgent = new InferenceEngineAIAgent(width, height);
     $: field = ms.field;
     $: gameProgress = ms.endState();
 
+    let aiCatchUpQueue: {x: number, y: number, adjacentMines: number}[] = [];
+    let aiISThinking = false;
+    function aiMove() {
+        if (aiISThinking) return;
+
+        aiISThinking = true;
+        aiAgent.makeMove(aiCatchUpQueue, () => aiAgent = aiAgent).then(() => {
+            aiISThinking = false;
+            aiAgent = aiAgent;
+        });
+        aiCatchUpQueue = [];
+    }
+
     function restart() {
         ms = new MinesweeperGame(width, height, 0);
+        aiAgent = new InferenceEngineAIAgent(width, height);
     }
 
     function onReveal(x, y) {
@@ -25,7 +40,9 @@
             ms = GoodStartMinesweeper(width, height, x, y);
         }
 
-        ms.revealEmptyPatch(x, y);
+        let revealedCells = ms.revealEmptyPatch(x, y);
+        aiCatchUpQueue.push(...revealedCells);
+
         ms = ms;
     }
 
@@ -36,11 +53,11 @@
     // provided by svelte window
     let windowInnerWidth, windowInnerHeight;
 
-    let playContentElement: HTMLDivElement;
-    $: if (playContentElement) {
+    let boardContainer: HTMLDivElement;
+    $: if (boardContainer) {
         // we dont care if either of these are undefined
         // because we have to pick one anyway
-        playContentElement.style.width = `100v${windowInnerHeight > windowInnerWidth ? "w" : "h"}`;
+        boardContainer.style.width = `100v${windowInnerHeight > windowInnerWidth ? "w" : "h"}`;
     }
 
     // window functions for debugging
@@ -68,33 +85,38 @@
   </div>
 {/if}
 
+<button class="absolute top-0 right-0 m-8 mr-11" on:click={aiMove}>
+  AI Vision
+</button>
+
 <section
-    id="PlayContent"
-    bind:this={playContentElement}
-    class="grid place-items-center mx-auto"
+    bind:this={boardContainer}
+    class="grid place-items-center mx-auto p-10 mt-16 md:mt-0"
 >
-  <div class="p-10 w-full">
-    <div
-        id="Board"
-        class="grid border border-amber-300 rounded-xl gap-[.1rem]"
-    >
-      {#each field as column, x}
-        {#each column as cell, y}
-          <Cell
-              lighter={(x + y) % 2 === 0}
-              cell={cell}
-              onReveal={() => onReveal(x, y)}
-              onFlag={() => ms = ms}
-              aiOverlay={aiAgent.field[x][y]}
-          />
-        {/each}
+  <div
+      id="Board"
+      class="grid border border-amber-300 rounded-xl gap-[.1rem] w-full"
+  >
+    {#each field as column, x}
+      {#each column as cell, y}
+        <Cell
+            lighter={(x + y) % 2 === 0}
+            cell={cell}
+            onReveal={() => onReveal(x, y)}
+            onFlag={() => ms = ms}
+            aiOverlay={aiAgent.field[x][y]}
+        />
       {/each}
-    </div>
+    {/each}
   </div>
 </section>
 
 
 <style lang="scss">
+  :global(body) {
+    overflow: hidden;
+  }
+
   #Board {
     grid-template-columns: repeat(12, 1fr);
   }
